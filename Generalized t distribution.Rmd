@@ -1,0 +1,252 @@
+---
+title: "Generalized t distribution"
+author: "Yi Zong"
+date: "2022/6/9"
+output: html_document
+---
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+DATA <- read.csv("C:/Users/Yi Zong/Desktop/group_project/DATA.csv")
+```
+
+```{r}
+# Log return histograms
+log_return_BTC <- with(DATA, diff(log(DATA$BTC)))
+hist(log_return_BTC,main="Log return of BTC", xlab="log returns")
+```
+
+
+```{r}
+# Log return histograms
+log_return_BNB <- with(DATA, diff(log(DATA$BNB)))
+hist(log_return_BTC,main="Log return of BNB", xlab="log returns")
+```
+```{r}
+# Log return histograms
+log_return_ETH <- with(DATA, diff(log(DATA$ETH)))
+hist(log_return_ETH,main="Log return of ETH", xlab="log returns")
+```
+
+```{r}
+# Log return histograms
+log_return_DOGE <- with(DATA, diff(log(DATA$DOGE)))
+hist(log_return_DOGE,main="Log return of DOGE", xlab="log returns")
+```
+```{r}
+# Log return histograms
+log_return_XRP <- with(DATA, diff(log(DATA$XRP)))
+hist(log_return_XRP,main="Log return of XRP", xlab="log returns")
+```
+```{r}
+# Log return histograms
+log_return_ADA <- with(DATA, diff(log(DATA$ADA)))
+hist(log_return_ADA,main="Log return of ADA", xlab="log returns")
+```
+Generalized t distribution 
+
+$$ f(x) = \frac{\tau}{2\sigma{\nu}^{1/\mu}B(\nu,1/\tau)}\left[1+\frac{1}{\nu}\left|\frac{x-\mu}{\sigma}\right|^{\tau}\right]^{-\nu+1/\tau}$$
+
+```{r}
+library(MASS)
+library(gamlss.dist)
+
+# PDF of generalized t distribution
+f_gt <- function(x,par){
+  return(dGT(x, mu = par[1], sigma = par[2], nu = par[3], tau = par[4], log = FALSE))
+}
+
+# Log likelihood function of generalized t distribution
+f_lgt <- function(x,par){
+  -sum(log(f_gt(x,par)))
+}
+
+# 1.optimized parameter of generalized t distribution for BTC
+BTC_GT <- optim(par=c(0.001,0.001,0.001,0.001), f_lgt, x=log_return_BTC,lower=c(0,0.01,0.01,0.01),upper=c(100,100,100,100)) 
+
+
+# 2.optimized parameter of generalized t distribution for BNB
+BNB_GT <- optim(par=c(0.001,0.001,0.001,0.001), f_lgt, x=log_return_BNB,lower=c(0.001,0.001,0.001,0.001),upper=c(100,100,100,100))
+
+# 3.optimized parameter of generalized t distribution for ETH
+ETH_GT <- optim(par=c(0.001,0.001,0.001,0.001), f_lgt, x=log_return_ETH,lower=c(0.001,0.001,0.001,0.001),upper=c(100,100,100,100)) 
+
+# 4.optimized parameter of generalized t distribution for DOGE
+DOGE_GT <- optim(par=c(0.001,0.001,0.001,0.001), f_lgt, x=log_return_DOGE,lower=c(0,0.01,0.01,0.01),upper=c(100,100,100,100)) 
+
+# 5.optimized parameter of generalized t distribution for XRP
+XRP_GT <- optim(par=c(0.001,0.001,0.001,0.001), f_lgt, x=log_return_XRP,lower=c(0,0.01,0.01,0.01),upper=c(100,100,100,100)) 
+
+# 6.optimized parameter of generalized t distribution for ADA
+ADA_GT <- optim(par=c(0.001,0.001,0.001,0.001), f_lgt, x=log_return_ADA,lower=c(0,0.01,0.01,0.01),upper=c(100,100,100,100)) 
+```
+
+```{r}
+# Criterion of BTC
+k_BTC <- length(BTC_GT$par)+1 
+n_BTC <- length(log_return_BTC)
+
+# AIC
+AIC_BTC_GT <- 2*(k_BTC+1)-2*(-f_lgt(log_return_BTC, BTC_GT$par))
+print(AIC_BTC_GT)
+
+# AICc
+AICc_BTC_GT <- AIC_BTC_GT+2*k_BTC*(k_BTC+1)/(n_BTC-k_BTC-1)
+print(AICc_BTC_GT)
+
+# BIC
+BIC_BTC_GT <- k_BTC*log(n_BTC)-2*(-f_lgt(log_return_BTC, BTC_GT$par))
+print(BIC_BTC_GT)
+
+# HQC
+HQC_BTC_GT <- -2*(-f_lgt(log_return_BTC, BTC_GT$par))+2*k_BTC*log(log(n_BTC))
+print(HQC_BTC_GT)
+
+# CAIC
+CAIC_BTC_GT <- -2*(-f_lgt(log_return_BTC, BTC_GT$par))+k_BTC*(log(n_BTC)+1)
+print(CAIC_BTC_GT)
+
+
+
+```
+```{r}
+# Criterion of ETH
+k_ETH <- length(ETH_GT$par)+1 
+n_ETH <- length(log_return_ETH)
+
+# AIC
+AIC_ETH_GT <- 2*(k_ETH+1)-2*(-f_lgt(log_return_ETH, ETH_GT$par))
+print(AIC_ETH_GT)
+
+# AICc
+AICc_ETH_GT <- AIC_ETH_GT+2*k_ETH*(k_ETH+1)/(n_ETH-k_ETH-1)
+print(AICc_ETH_GT)
+
+# BIC
+BIC_ETH_GT <- k_ETH*log(n_ETH)-2*(-f_lgt(log_return_ETH, ETH_GT$par))
+print(BIC_ETH_GT)
+
+# HQC
+HQC_ETH_GT <- -2*(-f_lgt(log_return_ETH, ETH_GT$par))+2*k_ETH*log(log(n_ETH))
+print(HQC_ETH_GT)
+
+# CAIC
+CAIC_ETH_GT <- -2*(-f_lgt(log_return_ETH, ETH_GT$par))+k_ETH*(log(n_ETH)+1)
+print(CAIC_ETH_GT)
+```
+
+```{r}
+# Criterion of BNB
+k_BNB <- length(BNB_GT$par)+1 
+n_BNB <- length(log_return_BNB)
+
+# AIC
+AIC_BNB_GT <- 2*(k_BNB+1)-2*(-f_lgt(log_return_BNB, BNB_GT$par))
+print(AIC_BNB_GT)
+
+# AICc
+AICc_BNB_GT <- AIC_BNB_GT+2*k_BNB*(k_BNB+1)/(n_BNB-k_BNB-1)
+print(AICc_BNB_GT)
+
+# BIC
+BIC_BNB_GT <- k_BNB*log(n_BNB)-2*(-f_lgt(log_return_BNB, BNB_GT$par))
+print(BIC_BNB_GT)
+
+# HQC
+HQC_BNB_GT <- -2*(-f_lgt(log_return_BNB, BNB_GT$par))+2*k_BNB*log(log(n_BNB))
+print(HQC_BNB_GT)
+
+# CAIC
+CAIC_BNB_GT <- -2*(-f_lgt(log_return_BNB, BNB_GT$par))+k_BNB*(log(n_BNB)+1)
+print(CAIC_BNB_GT)
+
+
+```
+```{r}
+# Criterion of DOGE
+k_DOGE <- length(DOGE_GT$par)+1 
+n_DOGE <- length(log_return_DOGE)
+
+# AIC
+AIC_DOGE_GT <- 2*(k_DOGE+1)-2*(-f_lgt(log_return_DOGE, DOGE_GT$par))
+print(AIC_DOGE_GT)
+
+# AICc
+AICc_DOGE_GT <- AIC_DOGE_GT+2*k_DOGE*(k_DOGE+1)/(n_DOGE-k_DOGE-1)
+print(AICc_DOGE_GT)
+
+# BIC
+BIC_DOGE_GT <- k_DOGE*log(n_DOGE)-2*(-f_lgt(log_return_DOGE, DOGE_GT$par))
+print(BIC_DOGE_GT)
+
+# HQC
+HQC_DOGE_GT <- -2*(-f_lgt(log_return_DOGE, DOGE_GT$par))+2*k_DOGE*log(log(n_DOGE))
+print(HQC_DOGE_GT)
+
+# CAIC
+CAIC_DOGE_GT <- -2*(-f_lgt(log_return_DOGE, DOGE_GT$par))+k_DOGE*(log(n_DOGE)+1)
+print(CAIC_DOGE_GT)
+```
+```{r}
+# Criterion of XRP
+k_XRP <- length(XRP_GT$par)+1 
+n_XRP <- length(log_return_XRP)
+
+# AIC
+AIC_XRP_GT <- 2*(k_XRP+1)-2*(-f_lgt(log_return_XRP, XRP_GT$par))
+print(AIC_XRP_GT)
+
+# AICc
+AICc_XRP_GT <- AIC_XRP_GT+2*k_XRP*(k_XRP+1)/(n_XRP-k_XRP-1)
+print(AICc_XRP_GT)
+
+# BIC
+BIC_XRP_GT <- k_XRP*log(n_XRP)-2*(-f_lgt(log_return_XRP, XRP_GT$par))
+print(BIC_XRP_GT)
+
+# HQC
+HQC_XRP_GT <- -2*(-f_lgt(log_return_XRP, XRP_GT$par))+2*k_XRP*log(log(n_XRP))
+print(HQC_XRP_GT)
+
+# CAIC
+CAIC_XRP_GT <- -2*(-f_lgt(log_return_XRP, XRP_GT$par))+k_XRP*(log(n_XRP)+1)
+print(CAIC_XRP_GT)
+
+
+
+```
+```{r}
+# Criterion of ADA
+k_ADA <- length(ADA_GT$par)+1 
+n_ADA <- length(log_return_ADA)
+
+# AIC
+AIC_ADA_GT <- 2*(k_ADA+1)-2*(-f_lgt(log_return_ADA, ADA_GT$par))
+print(AIC_ADA_GT)
+
+# AICc
+AICc_ADA_GT <- AIC_ADA_GT+2*k_ADA*(k_ADA+1)/(n_ADA-k_ADA-1)
+print(AICc_ADA_GT)
+
+# BIC
+BIC_ADA_GT <- k_ADA*log(n_ADA)-2*(-f_lgt(log_return_ADA, ADA_GT$par))
+print(BIC_ADA_GT)
+
+# HQC
+HQC_ADA_GT <- -2*(-f_lgt(log_return_ADA, ADA_GT$par))+2*k_ADA*log(log(n_ADA))
+print(HQC_ADA_GT)
+
+# CAIC
+CAIC_ADA_GT <- -2*(-f_lgt(log_return_ADA, ADA_GT$par))+k_ADA*(log(n_ADA)+1)
+print(CAIC_ADA_GT)
+
+
+
+```
+```{r}
+BTC_GT
+```
