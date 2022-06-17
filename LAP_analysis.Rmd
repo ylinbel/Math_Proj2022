@@ -1,0 +1,279 @@
+---
+title: "Year2 Project"
+author: "Yuning Li"
+date: "2022/6/8"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+BTC <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/Bitcoin_data.csv")
+ETH <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/Ethereum_data.csv")
+BNB <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/BNB_data.csv")
+DOGE <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/dogcoin_data.csv")
+XRP <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/XRP_data.csv")
+ADA <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/ADA_data.csv")
+```
+
+```{r}
+# Log return histograms
+log_return_BTC <- with(BTC, diff(log(BTC$ClosingPrice)))
+log_return_ETH <- with(ETH, diff(log(ETH$ClosingPrice)))
+log_return_BNB <- with(BNB, diff(log(BNB$ClosingPrice)))
+log_return_DOGE <- with(DOGE, diff(log(DOGE$ClosingPrice)))
+log_return_XRP <- with(XRP, diff(log(XRP$ClosingPrice)))
+log_return_ADA <- with(ADA, diff(log(ADA$ClosingPrice)))
+```
+
+```{r}
+# Parameters of Laplace distribution of BTC
+x_BTC <- log_return_BTC
+mu_BTC <- mean(log_return_BTC)
+
+# PDF of Laplace distribution
+f_p_BTC <- function(x, par){
+  (1/(2*par))*exp(-(abs(x-mu_BTC))/(par))
+}
+
+# Log likelihood function of Laplace distribution
+f_l_BTC <- function(x, par){
+  -sum(log(f_p_BTC(x, par)))
+}
+
+BTC_LAP <- optim(par=0.00001, f_l_BTC, method="Brent", x=log_return_BTC, lower=0.00001, upper=100)
+```
+
+```{r}
+# Criterion of BTC
+k_BTC <- length(BTC_LAP$par)+1 #consider mu
+n_BTC <- length(x_BTC)
+
+# AIC
+AIC_BTC_LAP <- 2*(k_BTC)-2*(-f_l_BTC(x_BTC, BTC_LAP$par))
+print(AIC_BTC_LAP)
+# BIC
+BIC_BTC_LAP <- k_BTC*log(n_BTC)-2*(-f_l_BTC(x_BTC, BTC_LAP$par))
+print(BIC_BTC_LAP)
+# CAIC
+CAIC_BTC_LAP <- -2*(-f_l_BTC(x_BTC, BTC_LAP$par))+k_BTC*(log(n_BTC)+1)
+print(CAIC_BTC_LAP)
+# AICc
+AICc_BTC_LAP <- AIC_BTC_LAP+2*k_BTC*(k_BTC+1)/(n_BTC-k_BTC-1)
+print(AICc_BTC_LAP)
+# HQC
+HQC_BTC_LAP <- -2*(-f_l_BTC(x_BTC, BTC_LAP$par))+2*k_BTC*log(log(n_BTC))
+print(HQC_BTC_LAP)
+```
+
+```{r}
+# Parameters of Laplace distribution of ETH
+x_ETH <- log_return_ETH
+mu_ETH <- mean(log_return_ETH)
+
+# PDF of Laplace distribution
+f_p_ETH <- function(x, par){
+  (1/(2*par))*exp(-(abs(x-mu_ETH))/(par))
+}
+
+# Log likelihood function of Laplace distribution
+f_l_ETH <- function(x, par){
+  -sum(log(f_p_ETH(x, par)))
+}
+
+ETH_LAP <- optim(par=0.00001, f_l_ETH, method="Brent", x=log_return_ETH, lower=0.00001, upper=100)
+```
+
+```{r}
+# Criterion of ETH
+k_ETH <- length(ETH_LAP$par)+1 #consider mu
+n_ETH <- length(x_ETH)
+
+# AIC
+AIC_ETH_LAP <- 2*(k_ETH)-2*(-f_l_ETH(x_ETH, ETH_LAP$par))
+print(AIC_ETH_LAP)
+# BIC
+BIC_ETH_LAP <- k_ETH*log(n_ETH)-2*(-f_l_ETH(x_ETH, ETH_LAP$par))
+print(BIC_ETH_LAP)
+# CAIC
+CAIC_ETH_LAP <- -2*(-f_l_ETH(x_ETH, ETH_LAP$par))+k_ETH*(log(n_ETH)+1)
+print(CAIC_ETH_LAP)
+# AICc
+AICc_ETH_LAP <- AIC_ETH_LAP+2*k_ETH*(k_ETH+1)/(n_ETH-k_ETH-1)
+print(AICc_ETH_LAP)
+# HQC
+HQC_ETH_LAP <- -2*(-f_l_ETH(x_ETH, ETH_LAP$par))+2*k_ETH*log(log(n_ETH))
+print(HQC_ETH_LAP)
+```
+
+```{r}
+# Parameters of Laplace distribution of BNB
+x_BNB <- log_return_BNB
+mu_BNB <- mean(log_return_BNB)
+
+# PDF of Laplace distribution
+f_p_BNB <- function(x, par){
+  (1/(2*par))*exp(-(abs(x-mu_BNB))/(par))
+}
+
+# Log likelihood function of Laplace distribution
+f_l_BNB <- function(x, par){
+  -sum(log(f_p_BNB(x, par)))
+}
+
+BNB_LAP <- optim(par=0.00001, f_l_BNB, method="Brent", x=log_return_BNB, lower=0.00001, upper=100)
+```
+
+```{r}
+# Criterion of BNB
+k_BNB <- length(BNB_LAP$par)+1 #consider mu
+n_BNB <- length(x_BNB)
+
+# AIC
+AIC_BNB_LAP <- 2*(k_BNB)-2*(-f_l_BNB(x_BNB, BNB_LAP$par))
+print(AIC_BNB_LAP)
+# BIC
+BIC_BNB_LAP <- k_BNB*log(n_BNB)-2*(-f_l_BNB(x_BNB, BNB_LAP$par))
+print(BIC_BNB_LAP)
+# CAIC
+CAIC_BNB_LAP <- -2*(-f_l_BNB(x_BNB, BNB_LAP$par))+k_BNB*(log(n_BNB)+1)
+print(CAIC_BNB_LAP)
+# AICc
+AICc_BNB_LAP <- AIC_BNB_LAP+2*k_BNB*(k_BNB+1)/(n_BNB-k_BNB-1)
+print(AICc_BNB_LAP)
+# HQC
+HQC_BNB_LAP <- -2*(-f_l_BNB(x_BNB, BNB_LAP$par))+2*k_BNB*log(log(n_BNB))
+print(HQC_BNB_LAP)
+```
+
+```{r}
+# Parameters of Laplace distribution of DOGE
+x_DOGE <- log_return_DOGE
+mu_DOGE <- mean(log_return_DOGE)
+
+# PDF of Laplace distribution
+f_p_DOGE <- function(x, par){
+  (1/(2*par))*exp(-(abs(x-mu_DOGE))/(par))
+}
+
+# Log likelihood function of Laplace distribution
+f_l_DOGE <- function(x, par){
+  -sum(log(f_p_DOGE(x, par)))
+}
+
+DOGE_LAP <- optim(par=0.00001, f_l_DOGE, method="Brent", x=log_return_DOGE, lower=0.00001, upper=100)
+```
+
+```{r}
+# Criterion of DOGE
+k_DOGE <- length(DOGE_LAP$par)+1 #consider mu
+n_DOGE <- length(x_DOGE)
+
+# AIC
+AIC_DOGE_LAP <- 2*(k_DOGE)-2*(-f_l_DOGE(x_DOGE, DOGE_LAP$par))
+print(AIC_DOGE_LAP)
+# BIC
+BIC_DOGE_LAP <- k_DOGE*log(n_DOGE)-2*(-f_l_DOGE(x_DOGE, DOGE_LAP$par))
+print(BIC_DOGE_LAP)
+# CAIC
+CAIC_DOGE_LAP <- -2*(-f_l_DOGE(x_DOGE, DOGE_LAP$par))+k_DOGE*(log(n_DOGE)+1)
+print(CAIC_DOGE_LAP)
+# AICc
+AICc_DOGE_LAP <- AIC_DOGE_LAP+2*k_DOGE*(k_DOGE+1)/(n_DOGE-k_DOGE-1)
+print(AICc_DOGE_LAP)
+# HQC
+HQC_DOGE_LAP <- -2*(-f_l_DOGE(x_DOGE, DOGE_LAP$par))+2*k_DOGE*log(log(n_DOGE))
+print(HQC_DOGE_LAP)
+```
+
+```{r}
+# Parameters of Laplace distribution of XRP
+x_XRP <- log_return_XRP
+mu_XRP <- mean(log_return_XRP)
+
+# PDF of Laplace distribution
+f_p_XRP <- function(x, par){
+  (1/(2*par))*exp(-(abs(x-mu_XRP))/(par))
+}
+
+# Log likelihood function of Laplace distribution
+f_l_XRP <- function(x, par){
+  -sum(log(f_p_XRP(x, par)))
+}
+
+XRP_LAP <- optim(par=0.00001, f_l_XRP, method="Brent", x=log_return_XRP, lower=0.00001, upper=100)
+```
+
+```{r}
+# Criterion of XRP
+k_XRP <- length(XRP_LAP$par)+1 #consider mu
+n_XRP <- length(x_XRP)
+
+# AIC
+AIC_XRP_LAP <- 2*(k_XRP)-2*(-f_l_XRP(x_XRP, XRP_LAP$par))
+print(AIC_XRP_LAP)
+# BIC
+BIC_XRP_LAP <- k_XRP*log(n_XRP)-2*(-f_l_XRP(x_XRP, XRP_LAP$par))
+print(BIC_XRP_LAP)
+# CAIC
+CAIC_XRP_LAP <- -2*(-f_l_XRP(x_XRP, XRP_LAP$par))+k_XRP*(log(n_XRP)+1)
+print(CAIC_XRP_LAP)
+# AICc
+AICc_XRP_LAP <- AIC_XRP_LAP+2*k_XRP*(k_XRP+1)/(n_XRP-k_XRP-1)
+print(AICc_XRP_LAP)
+# HQC
+HQC_XRP_LAP <- -2*(-f_l_XRP(x_XRP, XRP_LAP$par))+2*k_XRP*log(log(n_XRP))
+print(HQC_XRP_LAP)
+```
+
+```{r}
+# Parameters of Laplace distribution of ADA
+x_ADA <- log_return_ADA
+mu_ADA <- mean(log_return_ADA)
+
+# PDF of Laplace distribution
+f_p_ADA <- function(x, par){
+  (1/(2*par))*exp(-(abs(x-mu_ADA))/(par))
+}
+
+# Log likelihood function of Laplace distribution
+f_l_ADA <- function(x, par){
+  -sum(log(f_p_ADA(x, par)))
+}
+
+ADA_LAP <- optim(par=0.00001, f_l_ADA, method="Brent", x=log_return_ADA, lower=0.00001, upper=100)
+```
+
+```{r}
+# Criterion of ADA
+k_ADA <- length(ADA_LAP$par)+1 #consider mu
+n_ADA <- length(x_ADA)
+
+# AIC
+AIC_ADA_LAP <- 2*(k_ADA)-2*(-f_l_ADA(x_ADA, ADA_LAP$par))
+print(AIC_ADA_LAP)
+# BIC
+BIC_ADA_LAP <- k_ADA*log(n_ADA)-2*(-f_l_ADA(x_ADA, ADA_LAP$par))
+print(BIC_ADA_LAP)
+# CAIC
+CAIC_ADA_LAP <- -2*(-f_l_ADA(x_ADA, ADA_LAP$par))+k_ADA*(log(n_ADA)+1)
+print(CAIC_ADA_LAP)
+# AICc
+AICc_ADA_LAP <- AIC_ADA_LAP+2*k_ADA*(k_ADA+1)/(n_ADA-k_ADA-1)
+print(AICc_ADA_LAP)
+# HQC
+HQC_ADA_LAP <- -2*(-f_l_ADA(x_ADA, ADA_LAP$par))+2*k_ADA*log(log(n_ADA))
+print(HQC_ADA_LAP)
+```

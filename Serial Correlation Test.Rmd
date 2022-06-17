@@ -1,0 +1,170 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+BTC <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/Bitcoin_data.csv")
+ETH <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/Ethereum_data.csv")
+BNB <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/BNB_data.csv")
+DOGE <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/dogcoin_data.csv")
+XRP <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/XRP_data.csv")
+ADA <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/ADA_data.csv")
+```
+
+```{r}
+log_return_BTC <- with(BTC, diff(log(BTC$ClosingPrice)))
+log_return_ETH <- with(ETH, diff(log(ETH$ClosingPrice)))
+log_return_BNB <- with(BNB, diff(log(BNB$ClosingPrice)))
+log_return_DOGE <- with(DOGE, diff(log(DOGE$ClosingPrice)))
+log_return_XRP <- with(XRP, diff(log(XRP$ClosingPrice)))
+log_return_ADA <- with(ADA, diff(log(ADA$ClosingPrice)))
+```
+
+
+Serial Correlation Test:
+
+1.DW Test (mentioned in paper 4)
+
+```{r}
+# *Statistics of DW Test but can not find critical values - Treating daily log return as error term - Based on online material it is impossible to get the critical values without knowing the linear model
+d_BTC <- sum((diff(log_return_BTC))**2)/sum(log_return_BTC**2)
+d_ETH <- sum((diff(log_return_ETH))**2)/sum(log_return_ETH**2)
+d_BNB <- sum((diff(log_return_BNB))**2)/sum(log_return_BNB**2)
+d_DOGE <- sum((diff(log_return_DOGE))**2)/sum(log_return_DOGE**2)
+d_XRP <- sum((diff(log_return_XRP))**2)/sum(log_return_XRP**2)
+d_ADA <- sum((diff(log_return_ADA))**2)/sum(log_return_ADA**2)
+```
+
+```{r}
+# DW tests treating daily log return as a linear model
+x_BTC <- log_return_BTC[1:1461]
+y_BTC <- log_return_BTC[2:1462]
+
+library(car)
+library(carData)
+model_BTC <- lm(y_BTC ~ x_BTC)
+durbinWatsonTest(model_BTC)
+```
+
+2.T test on Pearson coefficient (not sure if this one works)
+
+```{r}
+# Serial correlation test by T-test on pearson coef
+cor(x_BTC, y_BTC, method = "pearson")
+cor.test(x_BTC, y_BTC, method = "pearson")
+```
+
+3.Package of serial correlation test in R
+
+```{r}
+# Serial correlation test by rank.von.Neumann method
+library(EnvStats)
+serialCorrelationTest(log_return_BTC)
+```
+```{r}
+serialCorrelationTest(log_return_ETH)
+```
+```{r}
+serialCorrelationTest(log_return_BNB)
+```
+```{r}
+serialCorrelationTest(log_return_DOGE)
+```
+```{r}
+serialCorrelationTest(log_return_XRP)
+```
+```{r}
+serialCorrelationTest(log_return_ADA)
+```
+
+
+Heteroskedasticity Test:
+
+1.BP Test
+
+```{r}
+# BP tests treating daily log return as a linear model
+library(lmtest)
+bptest(model_BTC)
+```
+```{r}
+x_ETH <- log_return_ETH[1:1461]
+y_ETH <- log_return_ETH[2:1462]
+model_ETH <- lm(y_ETH ~ x_ETH)
+bptest(model_ETH)
+```
+
+```{r}
+x_BNB <- log_return_BNB[1:1461]
+y_BNB <- log_return_BNB[2:1462]
+model_BNB <- lm(y_BNB ~ x_BNB)
+bptest(model_BNB)
+```
+```{r}
+x_DOGE <- log_return_DOGE[1:1461]
+y_DOGE <- log_return_DOGE[2:1462]
+model_DOGE <- lm(y_DOGE ~ x_DOGE)
+bptest(model_DOGE)
+```
+```{r}
+x_XRP <- log_return_XRP[1:1461]
+y_XRP <- log_return_XRP[2:1462]
+model_XRP <- lm(y_XRP ~ x_XRP)
+bptest(model_XRP)
+```
+```{r}
+x_ADA <- log_return_ADA[1:1461]
+y_ADA <- log_return_ADA[2:1462]
+model_ADA <- lm(y_ADA ~ x_ADA)
+bptest(model_ADA)
+```
+
+```{r}
+# Test by plot
+plot(x_BTC, y_BTC, pch = 1, col = "lightblue", xlab = "Log returns of BTC at day t", ylab = "Log returns of BTC at day t+1")
+
+# Regression line
+abline(lm(y_BTC ~ x_BTC), col = "blue", lwd = 3)
+
+# Test by plot
+plot(x_ETH, y_ETH, pch = 1, col = "lightblue", xlab = "Log returns of ETH at day t", ylab = "Log returns of ETH at day t+1")
+
+# Regression line
+abline(lm(y_ETH ~ x_ETH), col = "blue", lwd = 3)
+
+# Test by plot
+plot(x_BNB, y_BNB, pch = 1, col = "lightblue", xlab = "Log returns of BNB at day t", ylab = "Log returns of BNB at day t+1")
+
+# Regression line
+abline(lm(y_BNB ~ x_BNB), col = "blue", lwd = 3)
+
+# Test by plot
+plot(x_DOGE, y_DOGE, pch = 1, col = "lightblue", xlab = "Log returns of DOGE at day t", ylab = "Log returns of DOGE at day t+1")
+
+# Regression line
+abline(lm(y_DOGE ~ x_DOGE), col = "blue", lwd = 3)
+
+# Test by plot
+plot(x_XRP, y_XRP, pch = 1, col = "lightblue", xlab = "Log returns of XRP at day t", ylab = "Log returns of XRP at day t+1")
+
+# Regression line
+abline(lm(y_XRP ~ x_XRP), col = "blue", lwd = 3)
+
+# Test by plot
+plot(x_ADA, y_ADA, pch = 1, col = "lightblue", xlab = "Log returns of ADA at day t", ylab = "Log returns of ADA at day t+1")
+
+# Regression line
+abline(lm(y_ADA ~ x_ADA), col = "blue", lwd = 3)
+```
+
+```{r}
+# *BP tests treating daily log return as a linear model - Don't know the critical values
+sigmasq <- sum((log_return_BTC**2)/1461)
+g <- (log_return_BTC**2)/sigmasq
+TSS_BTC <- sum((g-1)**2)
+SSR_BTC <- sum((log_return_BTC)**2)
+LM_BTC <- 0.5*(TSS_BTC-SSR_BTC)
+```
+
+

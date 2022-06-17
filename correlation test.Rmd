@@ -1,0 +1,87 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+BTC <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/Bitcoin_data.csv")
+ETH <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/Ethereum_data.csv")
+BNB <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/BNB_data.csv")
+DOGE <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/dogcoin_data.csv")
+XRP <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/XRP_data.csv")
+ADA <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/ADA_data.csv")
+```
+
+```{r}
+# Log return histograms
+log_return_BTC <- with(BTC, diff(log(BTC$ClosingPrice)))
+log_return_ETH <- with(ETH, diff(log(ETH$ClosingPrice)))
+log_return_BNB <- with(BNB, diff(log(BNB$ClosingPrice)))
+log_return_DOGE <- with(DOGE, diff(log(DOGE$ClosingPrice)))
+log_return_XRP <- with(XRP, diff(log(XRP$ClosingPrice)))
+log_return_ADA <- with(ADA, diff(log(ADA$ClosingPrice)))
+```
+
+```{r}
+# Correlation test of BTC and BNB'
+library("ggpubr")
+cor(log_return_BNB, log_return_BTC, method = "pearson")
+cor.test(log_return_BNB, log_return_BTC, method = "pearson")
+
+cor(log_return_BNB, log_return_BTC, method = "spearman")
+cor.test(log_return_BNB, log_return_BTC, method = "spearman")
+```
+
+```{r}
+# Plot
+plot(log_return_BNB, log_return_BTC, pch = 1, col = "lightblue", xlab = "log returns of BNB", ylab = "log returns of BTC")
+
+# Regression line
+abline(lm(log_return_BTC ~ log_return_BNB), col = "blue", lwd = 3)
+
+# Plot
+plot(log_return_ETH, log_return_BTC, pch = 1, col = "lightblue", xlab = "log returns of ETH", ylab = "log returns of BTC")
+
+# Regression line
+abline(lm(log_return_BTC ~ log_return_ETH), col = "blue", lwd = 3)
+
+# Plot
+plot(log_return_DOGE, log_return_BTC, pch = 1, col = "lightblue", xlab = "log returns of DOGE", ylab = "log returns of BTC")
+
+# Regression line
+abline(lm(log_return_BTC ~ log_return_DOGE), col = "blue", lwd = 3)
+
+# Plot
+plot(log_return_XRP, log_return_BTC, pch = 1, col = "lightblue", xlab = "log returns of XRP", ylab = "log returns of BTC")
+
+# Regression line
+abline(lm(log_return_BTC ~ log_return_XRP), col = "blue", lwd = 3)
+
+# Plot
+plot(log_return_ADA, log_return_BTC, pch = 1, col = "lightblue", xlab = "log returns of ADA", ylab = "log returns of BTC")
+
+# Regression line
+abline(lm(log_return_BTC ~ log_return_ADA), col = "blue", lwd = 3)
+```
+
+```{r}
+BTC_ETH <- lm(log_return_BTC ~ log_return_ETH)
+BTC_BNB <- lm(log_return_BTC ~ log_return_BNB)
+BTC_DOGE <- lm(log_return_BTC ~ log_return_DOGE)
+BTC_XRP <- lm(log_return_BTC ~ log_return_XRP)
+BTC_ADA <- lm(log_return_BTC ~ log_return_ADA)
+```
+ 
+RMSE
+
+```{r}
+RMSE_ETH <- sqrt(sum((log_return_BTC-(BTC_ETH$coefficients[1]+(BTC_ETH$coefficients[2]*log_return_ETH)))**2)/1462)
+RMSE_BNB <- sqrt(sum((log_return_BTC-(BTC_BNB$coefficients[1]+(BTC_BNB$coefficients[2]*log_return_BNB)))**2)/1462)
+RMSE_DOGE <- sqrt(sum((log_return_BTC-(BTC_DOGE$coefficients[1]+(BTC_DOGE$coefficients[2]*log_return_DOGE)))**2)/1462)
+RMSE_XRP <- sqrt(sum((log_return_BTC-(BTC_XRP$coefficients[1]+(BTC_XRP$coefficients[2]*log_return_XRP)))**2)/1462)
+RMSE_ADA <- sqrt(sum((log_return_BTC-(BTC_ADA$coefficients[1]+(BTC_ADA$coefficients[2]*log_return_ADA)))**2)/1462)
+```

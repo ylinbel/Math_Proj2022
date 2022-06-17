@@ -1,0 +1,385 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r}
+BTC <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/Bitcoin_data.csv")
+ETH <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/Ethereum_data.csv")
+BNB <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/BNB_data.csv")
+DOGE <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/dogcoin_data.csv")
+XRP <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/XRP_data.csv")
+ADA <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/ADA_data.csv")
+```
+
+```{r}
+# Log return histograms
+log_return_BTC <- with(BTC, diff(log(BTC$ClosingPrice)))
+log_return_ETH <- with(ETH, diff(log(ETH$ClosingPrice)))
+log_return_BNB <- with(BNB, diff(log(BNB$ClosingPrice)))
+log_return_DOGE <- with(DOGE, diff(log(DOGE$ClosingPrice)))
+log_return_XRP <- with(XRP, diff(log(XRP$ClosingPrice)))
+log_return_ADA <- with(ADA, diff(log(ADA$ClosingPrice)))
+```
+
+```{r}
+# Parameters of asymmetric Student's t distribution of BTC
+mu_BTC <- mean(log_return_BTC)
+
+x_BTC <- log_return_BTC
+
+# PDF of asymmetric student's t distribution
+f_1_BTC <- function(x, par){
+  
+  alpha <- par[1]
+  v1 <- par[2]
+  v2 <- par[3]
+  sigma <- par[4]
+  
+  kv1 <- gamma((v1+1)/2)/(sqrt(pi*v1)*gamma(v1/2))
+  kv2 <- gamma((v2+1)/2)/(sqrt(pi*v2)*gamma(v2/2))
+  alphap <- alpha*kv1/(alpha*kv1+(1-alpha)*kv2)
+  
+  for (i in x){
+  
+  if (i <= mu_BTC) {
+    y=alpha*kv1*((1+(((i-mu_BTC)/(2*sigma*alphap))**2)/v1)**(-(v1+1)/2))/(alphap*sigma)
+    return (y)
+               }
+  else {
+    y=(1-alpha)*kv2*((1+(((i-mu_BTC)/(2*sigma*(1-alphap)))**2)/v2)**(-(v2+1)/2))/((1-alphap)*sigma)
+    return(y)
+  }
+}
+}
+
+# Log likelihood function of asymmetric student's t distribution
+f_2_BTC <- function(x, par){
+  -sum(log(f_1_BTC(x, par)))
+}
+
+BTC_AST <- optim(par=c(1e-10, 1, 1, 1e-10), f_2_BTC, x=log_return_BTC)
+
+```
+
+```{r}
+# Criterion of BTC
+k <- length(BTC_AST$par)+1 #consider mu
+n <- length(x_BTC)
+
+# AIC
+AIC_BTC_AST <- 2*(k)-2*(-f_2_BTC(x_BTC, BTC_AST$par))
+
+# BIC
+BIC_BTC_AST <- k*log(n)-2*(-f_2_BTC(x_BTC, BTC_AST$par))
+
+# CAIC
+CAIC_BTC_AST <- -2*(-f_2_BTC(x_BTC, BTC_AST$par))+k*(log(n)+1)
+
+# AICc
+AICc_BTC_AST <- AIC_BTC_AST+2*k*(k+1)/(n-k-1)
+
+# HQC
+HQC_BTC_AST <- -2*(-f_2_BTC(x_BTC, BTC_AST$par))+2*k*log(log(n))
+
+```
+
+```{r}
+# Parameters of asymmetric Student's t distribution of ETH
+mu_ETH <- mean(log_return_ETH)
+
+x_ETH <- log_return_ETH
+
+# PDF of asymmetric student's t distribution
+f_1_ETH <- function(x, par){
+  
+  alpha <- par[1]
+  v1 <- par[2]
+  v2 <- par[3]
+  sigma <- par[4]
+  
+  kv1 <- gamma((v1+1)/2)/(sqrt(pi*v1)*gamma(v1/2))
+  kv2 <- gamma((v2+1)/2)/(sqrt(pi*v2)*gamma(v2/2))
+  alphap <- alpha*kv1/(alpha*kv1+(1-alpha)*kv2)
+  
+  for (i in x){
+  
+  if (i <= mu_ETH) {
+    y=alpha*kv1*((1+(((i-mu_ETH)/(2*sigma*alphap))**2)/v1)**(-(v1+1)/2))/(alphap*sigma)
+    return (y)
+               }
+  else {
+    y=(1-alpha)*kv2*((1+(((i-mu_ETH)/(2*sigma*(1-alphap)))**2)/v2)**(-(v2+1)/2))/((1-alphap)*sigma)
+    return(y)
+  }
+}
+}
+
+# Log likelihood function of asymmetric student's t distribution
+f_2_ETH <- function(x, par){
+  -sum(log(f_1_ETH(x, par)))
+}
+
+ETH_AST <- optim(par=c(0.000001, 1, 1, 0.000001), f_2_ETH, x=log_return_ETH)
+
+```
+
+```{r}
+# Criterion of ETH
+
+# AIC
+AIC_ETH_AST <- 2*(k)-2*(-f_2_ETH(x_ETH, ETH_AST$par))
+
+# BIC
+BIC_ETH_AST <- k*log(n)-2*(-f_2_ETH(x_ETH, ETH_AST$par))
+
+# CAIC
+CAIC_ETH_AST <- -2*(-f_2_ETH(x_ETH, ETH_AST$par))+k*(log(n)+1)
+
+# AICc
+AICc_ETH_AST <- AIC_ETH_AST+2*k*(k+1)/(n-k-1)
+
+# HQC
+HQC_ETH_AST <- -2*(-f_2_ETH(x_ETH, ETH_AST$par))+2*k*log(log(n))
+
+```
+
+```{r}
+# Parameters of asymmetric Student's t distribution of BNB
+mu_BNB <- mean(log_return_BNB)
+
+x_BNB <- log_return_BNB
+
+# PDF of asymmetric student's t distribution
+f_1_BNB <- function(x, par){
+  
+  alpha <- par[1]
+  v1 <- par[2]
+  v2 <- par[3]
+  sigma <- par[4]
+  
+  kv1 <- gamma((v1+1)/2)/(sqrt(pi*v1)*gamma(v1/2))
+  kv2 <- gamma((v2+1)/2)/(sqrt(pi*v2)*gamma(v2/2))
+  alphap <- alpha*kv1/(alpha*kv1+(1-alpha)*kv2)
+  
+  for (i in x){
+  
+  if (i <= mu_BNB) {
+    y=alpha*kv1*((1+(((i-mu_BNB)/(2*sigma*alphap))**2)/v1)**(-(v1+1)/2))/(alphap*sigma)
+    return (y)
+               }
+  else {
+    y=(1-alpha)*kv2*((1+(((i-mu_BNB)/(2*sigma*(1-alphap)))**2)/v2)**(-(v2+1)/2))/((1-alphap)*sigma)
+    return(y)
+  }
+}
+}
+
+# Log likelihood function of asymmetric student's t distribution
+f_2_BNB <- function(x, par){
+  -sum(log(f_1_BNB(x, par)))
+}
+
+BNB_AST <- optim(par=c(0.000001, 1, 1, 0.000001), f_2_BNB, x=log_return_BNB)
+
+```
+```{r}
+# Criterion of BNB
+
+# AIC
+AIC_BNB_AST <- 2*(k)-2*(-f_2_BNB(x_BNB, BNB_AST$par))
+
+# BIC
+BIC_BNB_AST <- k*log(n)-2*(-f_2_BNB(x_BNB, BNB_AST$par))
+
+# CAIC
+CAIC_BNB_AST <- -2*(-f_2_BNB(x_BNB, BNB_AST$par))+k*(log(n)+1)
+
+# AICc
+AICc_BNB_AST <- AIC_BNB_AST+2*k*(k+1)/(n-k-1)
+
+# HQC
+HQC_BNB_AST <- -2*(-f_2_BNB(x_BNB, BNB_AST$par))+2*k*log(log(n))
+
+```
+
+```{r}
+# Parameters of asymmetric Student's t distribution of DOGE
+mu_DOGE <- mean(log_return_DOGE)
+
+x_DOGE <- log_return_DOGE
+
+# PDF of asymmetric student's t distribution
+f_1_DOGE <- function(x, par){
+  
+  alpha <- par[1]
+  v1 <- par[2]
+  v2 <- par[3]
+  sigma <- par[4]
+  
+  kv1 <- gamma((v1+1)/2)/(sqrt(pi*v1)*gamma(v1/2))
+  kv2 <- gamma((v2+1)/2)/(sqrt(pi*v2)*gamma(v2/2))
+  alphap <- alpha*kv1/(alpha*kv1+(1-alpha)*kv2)
+  
+  for (i in x){
+  
+  if (i <= mu_DOGE) {
+    y=alpha*kv1*((1+(((i-mu_DOGE)/(2*sigma*alphap))**2)/v1)**(-(v1+1)/2))/(alphap*sigma)
+    return (y)
+               }
+  else {
+    y=(1-alpha)*kv2*((1+(((i-mu_DOGE)/(2*sigma*(1-alphap)))**2)/v2)**(-(v2+1)/2))/((1-alphap)*sigma)
+    return(y)
+  }
+}
+}
+
+# Log likelihood function of asymmetric student's t distribution
+f_2_DOGE <- function(x, par){
+  -sum(log(f_1_DOGE(x, par)))
+}
+
+DOGE_AST <- optim(par=c(0.000001, 1, 1, 0.000001), f_2_DOGE, x=log_return_DOGE)
+
+```
+
+```{r}
+# Criterion of DOGE
+
+# AIC
+AIC_DOGE_AST <- 2*(k)-2*(-f_2_DOGE(x_DOGE, DOGE_AST$par))
+
+# BIC
+BIC_DOGE_AST <- k*log(n)-2*(-f_2_DOGE(x_DOGE, DOGE_AST$par))
+
+# CAIC
+CAIC_DOGE_AST <- -2*(-f_2_DOGE(x_DOGE, DOGE_AST$par))+k*(log(n)+1)
+
+# AICc
+AICc_DOGE_AST <- AIC_DOGE_AST+2*k*(k+1)/(n-k-1)
+
+# HQC
+HQC_DOGE_AST <- -2*(-f_2_DOGE(x_DOGE, DOGE_AST$par))+2*k*log(log(n))
+
+```
+
+```{r}
+# Parameters of asymmetric Student's t distribution of XRP
+mu_XRP <- mean(log_return_XRP)
+
+x_XRP <- log_return_XRP
+
+# PDF of asymmetric student's t distribution
+f_1_XRP <- function(x, par){
+  
+  alpha <- par[1]
+  v1 <- par[2]
+  v2 <- par[3]
+  sigma <- par[4]
+  
+  kv1 <- gamma((v1+1)/2)/(sqrt(pi*v1)*gamma(v1/2))
+  kv2 <- gamma((v2+1)/2)/(sqrt(pi*v2)*gamma(v2/2))
+  alphap <- alpha*kv1/(alpha*kv1+(1-alpha)*kv2)
+  
+  for (i in x){
+  
+  if (i <= mu_XRP) {
+    y=alpha*kv1*((1+(((i-mu_XRP)/(2*sigma*alphap))**2)/v1)**(-(v1+1)/2))/(alphap*sigma)
+    return (y)
+               }
+  else {
+    y=(1-alpha)*kv2*((1+(((i-mu_XRP)/(2*sigma*(1-alphap)))**2)/v2)**(-(v2+1)/2))/((1-alphap)*sigma)
+    return(y)
+  }
+}
+}
+
+# Log likelihood function of asymmetric student's t distribution
+f_2_XRP <- function(x, par){
+  -sum(log(f_1_XRP(x, par)))
+}
+
+XRP_AST <- optim(par=c(0.000001, 1, 1, 0.000001), f_2_XRP, x=log_return_XRP)
+
+```
+```{r}
+# Criterion of XRP
+
+# AIC
+AIC_XRP_AST <- 2*(k)-2*(-f_2_XRP(x_XRP, XRP_AST$par))
+
+# BIC
+BIC_XRP_AST <- k*log(n)-2*(-f_2_XRP(x_XRP, XRP_AST$par))
+
+# CAIC
+CAIC_XRP_AST <- -2*(-f_2_XRP(x_XRP, XRP_AST$par))+k*(log(n)+1)
+
+# AICc
+AICc_XRP_AST <- AIC_XRP_AST+2*k*(k+1)/(n-k-1)
+
+# HQC
+HQC_XRP_AST <- -2*(-f_2_XRP(x_XRP, XRP_AST$par))+2*k*log(log(n))
+
+```
+
+```{r}
+# Parameters of asymmetric Student's t distribution of ADA
+mu_ADA <- mean(log_return_ADA)
+
+x_ADA <- log_return_ADA
+
+# PDF of asymmetric student's t distribution
+f_1_ADA <- function(x, par){
+  
+  alpha <- par[1]
+  v1 <- par[2]
+  v2 <- par[3]
+  sigma <- par[4]
+  
+  kv1 <- gamma((v1+1)/2)/(sqrt(pi*v1)*gamma(v1/2))
+  kv2 <- gamma((v2+1)/2)/(sqrt(pi*v2)*gamma(v2/2))
+  alphap <- alpha*kv1/(alpha*kv1+(1-alpha)*kv2)
+  
+  for (i in x){
+  
+  if (i <= mu_ADA) {
+    y=alpha*kv1*((1+(((i-mu_ADA)/(2*sigma*alphap))**2)/v1)**(-(v1+1)/2))/(alphap*sigma)
+    return (y)
+               }
+  else {
+    y=(1-alpha)*kv2*((1+(((i-mu_ADA)/(2*sigma*(1-alphap)))**2)/v2)**(-(v2+1)/2))/((1-alphap)*sigma)
+    return(y)
+  }
+}
+}
+
+# Log likelihood function of asymmetric student's t distribution
+f_2_ADA <- function(x, par){
+  -sum(log(f_1_ADA(x, par)))
+}
+
+ADA_AST <- optim(par=c(0.000001, 1, 1, 0.000001), f_2_ADA, x=log_return_ADA)
+
+```
+```{r}
+# Criterion of ADA
+
+# AIC
+AIC_ADA_AST <- 2*(k)-2*(-f_2_ADA(x_ADA, ADA_AST$par))
+
+# BIC
+BIC_ADA_AST <- k*log(n)-2*(-f_2_ADA(x_ADA, ADA_AST$par))
+
+# CAIC
+CAIC_ADA_AST <- -2*(-f_2_ADA(x_ADA, ADA_AST$par))+k*(log(n)+1)
+
+# AICc
+AICc_ADA_AST <- AIC_ADA_AST+2*k*(k+1)/(n-k-1)
+
+# HQC
+HQC_ADA_AST <- -2*(-f_2_ADA(x_ADA, ADA_AST$par))+2*k*log(log(n))
+
+```

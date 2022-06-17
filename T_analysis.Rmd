@@ -1,0 +1,216 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+BTC <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/Bitcoin_data.csv")
+ETH <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/Ethereum_data.csv")
+BNB <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/BNB_data.csv")
+DOGE <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/dogcoin_data.csv")
+XRP <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/XRP_data.csv")
+ADA <- read.csv("C:/Users/Yuning LI/OneDrive - Imperial College London/Desktop/ADA_data.csv")
+```
+
+```{r}
+# Log return histograms
+log_return_BTC <- with(BTC, diff(log(BTC$ClosingPrice)))
+hist(log_return_BTC, main="Log returns of BTC", xlab="log returns")
+log_return_ETH <- with(ETH, diff(log(ETH$ClosingPrice)))
+hist(log_return_ETH, main="Log returns of ETH", xlab="log returns")
+log_return_BNB <- with(BNB, diff(log(BNB$ClosingPrice)))
+hist(log_return_BNB, main="Log returns of BNB", xlab="log returns")
+log_return_DOGE <- with(DOGE, diff(log(DOGE$ClosingPrice)))
+hist(log_return_DOGE, main="Log returns of DOGE", xlab="log returns")
+log_return_XRP <- with(XRP, diff(log(XRP$ClosingPrice)))
+hist(log_return_XRP, main="Log returns of XRP", xlab="log returns")
+log_return_ADA <- with(ADA, diff(log(ADA$ClosingPrice)))
+hist(log_return_ADA, main="Log returns of ADA", xlab="log returns")
+```
+
+```{r}
+# Parameters of Student's t distribution of BTC
+library("fitdistrplus")
+library("MASS")
+library("survival")
+
+BTC_T <- fitdistr(log_return_BTC, "t")
+```
+
+```{r}
+# Criterion of BTC
+L_BTC <- BTC_T$loglik
+k <- 3
+n <- length(log_return_BTC)
+
+# AIC
+AIC_BTC_T <- 2*(k)-2*(L_BTC)
+print(AIC_BTC_T)
+# BIC
+BIC_BTC_T <- k*log(n)-2*(L_BTC)
+print(BIC_BTC_T)
+# CAIC
+CAIC_BTC_T <- -2*(L_BTC)+k*(log(n)+1)
+print(CAIC_BTC_T)
+# AICc
+AICc_BTC_T <- AIC_BTC_T+2*k*(k+1)/(n-k-1)
+print(AICc_BTC_T)
+# HQC
+HQC_BTC_T <- -2*(L_BTC)+2*k*log(log(n))
+print(HQC_BTC_T)
+```
+
+```{r}
+# Parameters of Student's t distribution of ETH
+library("fitdistrplus")
+library("MASS")
+library("survival")
+
+ETH_T <- fitdistr(log_return_ETH, "t")
+```
+
+```{r}
+# Criterion of ETH
+L_ETH <- ETH_T$loglik
+
+# AIC
+AIC_ETH_T <- 2*(k)-2*(L_ETH)
+print(AIC_ETH_T)
+# BIC
+BIC_ETH_T <- k*log(n)-2*(L_ETH)
+print(BIC_ETH_T)
+# CAIC
+CAIC_ETH_T <- -2*(L_ETH)+k*(log(n)+1)
+print(CAIC_ETH_T)
+# AICc
+AICc_ETH_T <- AIC_ETH_T+2*k*(k+1)/(n-k-1)
+print(AICc_ETH_T)
+# HQC
+HQC_ETH_T <- -2*(L_ETH)+2*k*log(log(n))
+print(HQC_ETH_T)
+```
+
+```{r}
+# Parameters of Student's t distribution of BNB
+library("fitdistrplus")
+library("MASS")
+library("survival")
+
+BNB_T <- fitdistr(log_return_BNB, "t")
+```
+
+```{r}
+# Criterion of BNB
+L_BNB <- BNB_T$loglik
+
+# AIC
+AIC_BNB_T <- 2*(k)-2*(L_BNB)
+print(AIC_BNB_T)
+# BIC
+BIC_BNB_T <- k*log(n)-2*(L_BNB)
+print(BIC_BNB_T)
+# CAIC
+CAIC_BNB_T <- -2*(L_BNB)+k*(log(n)+1)
+print(CAIC_BNB_T)
+# AICc
+AICc_BNB_T <- AIC_BNB_T+2*k*(k+1)/(n-k-1)
+print(AICc_BNB_T)
+# HQC
+HQC_BNB_T <- -2*(L_BNB)+2*k*log(log(n))
+print(HQC_BNB_T)
+```
+
+```{r}
+# Parameters of Student's t distribution of DOGE
+library("fitdistrplus")
+library("MASS")
+library("survival")
+
+DOGE_T <- fitdistr(log_return_DOGE, "t")
+```
+
+```{r}
+# Criterion of DOGE
+L_DOGE <- DOGE_T$loglik
+
+# AIC
+AIC_DOGE_T <- 2*(k)-2*(L_DOGE)
+print(AIC_DOGE_T)
+# BIC
+BIC_DOGE_T <- k*log(n)-2*(L_DOGE)
+print(BIC_DOGE_T)
+# CAIC
+CAIC_DOGE_T <- -2*(L_DOGE)+k*(log(n)+1)
+print(CAIC_DOGE_T)
+# AICc
+AICc_DOGE_T <- AIC_DOGE_T+2*k*(k+1)/(n-k-1)
+print(AICc_DOGE_T)
+# HQC
+HQC_DOGE_T <- -2*(L_DOGE)+2*k*log(log(n))
+print(HQC_DOGE_T)
+```
+
+```{r}
+# Parameters of Student's t distribution of XRP
+library("fitdistrplus")
+library("MASS")
+library("survival")
+
+XRP_T <- fitdistr(log_return_XRP, "t")
+```
+
+```{r}
+# Criterion of XRP
+L_XRP <- XRP_T$loglik
+
+# AIC
+AIC_XRP_T <- 2*(k)-2*(L_XRP)
+print(AIC_XRP_T)
+# BIC
+BIC_XRP_T <- k*log(n)-2*(L_XRP)
+print(BIC_XRP_T)
+# CAIC
+CAIC_XRP_T <- -2*(L_XRP)+k*(log(n)+1)
+print(CAIC_XRP_T)
+# AICc
+AICc_XRP_T <- AIC_XRP_T+2*k*(k+1)/(n-k-1)
+print(AICc_XRP_T)
+# HQC
+HQC_XRP_T <- -2*(L_XRP)+2*k*log(log(n))
+print(HQC_XRP_T)
+```
+
+```{r}
+# Parameters of Student's t distribution of ADA
+library("fitdistrplus")
+library("MASS")
+library("survival")
+
+ADA_T <- fitdistr(log_return_ADA, "t")
+```
+
+```{r}
+# Criterion of ADA
+L_ADA <- ADA_T$loglik
+
+# AIC
+AIC_ADA_T <- 2*(k)-2*(L_ADA)
+print(AIC_ADA_T)
+# BIC
+BIC_ADA_T <- k*log(n)-2*(L_ADA)
+print(BIC_ADA_T)
+# CAIC
+CAIC_ADA_T <- -2*(L_ADA)+k*(log(n)+1)
+print(CAIC_ADA_T)
+# AICc
+AICc_ADA_T <- AIC_ADA_T+2*k*(k+1)/(n-k-1)
+print(AICc_ADA_T)
+# HQC
+HQC_ADA_T <- -2*(L_ADA)+2*k*log(log(n))
+print(HQC_ADA_T)
+```
+
