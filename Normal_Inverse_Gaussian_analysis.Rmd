@@ -1,0 +1,486 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+BNB <- read.csv("/Users/carina/Desktop/data_2018-2022/BNB.csv")
+```
+
+```{r}
+library(ghyp)
+data(BNB$ClosingPrice)
+
+nig.fit <- fit.NIGuv(BNB$ClosingPrice, 
+                     opt.pars = c(alpha.bar = T, mu = T, sigma = T),
+                     symmetrc = F, control = list(abstol = 1e-8))
+nig.fit
+
+summary(nig.fit)
+
+```
+
+```{r}
+# Log return histograms
+log_return_BNB <- with(BNB, diff(log(BNB$ClosingPrice)))
+hist(log_return_BNB, main = "Histogram of log return of BNB")
+```
+
+```{r}
+# Parameters of Student's t distribution
+library("fitdistrplus")
+fitdistr(log_return_BNB, "t")
+```
+
+```{r}
+# Parameters of Laplace distribution
+x <- log_return_BNB
+mu <- mean(log_return_BNB)
+
+# PDF of Laplace distribution
+f_p <- function(x, par){
+  (1/(2*par))*exp(-(abs(x-mu))/(par))
+}
+
+# Log likelihood function of Laplace distribution
+f_l <- function(x, par){
+  -sum(log(f_p(x, par)))
+}
+
+optim(par=0.00001, f_l, method="Brent", x=log_return_BNB, lower=0.00001, upper=100)
+```
+
+```{r}
+# Parameters of asymmetric Student's t distribution
+mu <- mean(log_return_BNB)
+sigma <- sqrt(var(log_return_BNB))
+# Not sure if the mean and sd are MLEs, but how could we include them in optim function properly if we want to get the MLEs of mu and sigma?
+
+x <- log_return_BNB
+
+# PDF of asymmetric student's t distribution
+f_1 <- function(x, par){
+  
+  alpha <- par[1]
+  v1 <- par[2]
+  v2 <- par[3]
+  
+  kv1 <- gamma((v1+1)/2)/(sqrt(pi*v1)*gamma(v1/2))
+  kv2 <- gamma((v2+1)/2)/(sqrt(pi*v2)*gamma(v2/2))
+  alphap <- alpha*kv1/(alpha*kv1+(1-alpha)*kv2)
+  
+  for (i in x){
+  
+  if (i <= mu) {
+    y=alpha*kv1*((1+(((i-mu)/(2*sigma*alphap))**2)/v1)**(-(v1+1)/2))/alphap
+    return (y)
+               }
+  else {
+    y=(1-alpha)*kv2*((1+(((i-mu)/(2*sigma*(1-alphap)))**2)/v2)**(-(v2+1)/2))/(1-alphap)
+    return(y)
+  }
+}
+}
+
+# Log likelihood function of asymmetric student's t distribution
+f_2 <- function(x, par){
+  -sum(log(f_1(x, par)))
+}
+
+optim(par=c(0.000001, 1, 1), f_2, x=log_return_BNB)
+
+```
+```{r}
+# Parameters of general inverse Gaussian distribution
+x_BNB <- log_return_BNB
+
+# PDF of general inverse Gaussian distribution
+
+  f_1 <- function(x, par){
+  
+  mu <- par[1]
+  delta <- par[2]
+  alpha <- par[3]
+  beta <- par[4]
+  
+
+  
+  k <- function(x, v){
+    if (is.integer(v)){
+      lim(k(x, mu), mu, v)
+    }
+    else {
+      (pi*(1/sin(pi*v))/2)*(besselI(x, -v, expon.scaled = FALSE)-besselI(x, v, expon.scaled = FALSE))
+    }
+  }
+
+  gamma <- sqrt(alpha**2-beta**2)
+    
+  for (i in x){
+    
+    y = (((gamma/delta)**(-1/2)*alpha)/(sqrt(2*pi)*k(gamma*delta,-1/2))*(delta**2+(i-mu)**2))*exp(beta *(i-mu))*k(alpha*sqrt(delta**2 + (i-mu)**2),-1)
+    return (y)
+
+  }
+}
+
+
+# Maximum likelihood estimates of Θ function of general inverse Gaussian distribution
+f_2 <- function(x, par){
+  sum(log(f_1(x, par)))
+}
+
+# nigFitStart(x, startValues = c("FN","Cauchy","MoM","US"), paramStart = NULL, startMethodMoM = c("Nelder-Mead","BFGS")) Function to find the s
+
+nigFit(x_BNB, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"),
+plots = FALSE, printOut = FALSE,
+controlBFGS = list(maxit = 200),
+controlNM = list(maxit = 1000), maxitNLM = 1500, controlLBFGSB = list(maxit = 200),
+controlNLMINB = list(),
+controlCO = list())
+
+```
+
+```{r}
+Bitcoin <- read.csv("/Users/carina/Desktop/data_2018-2022/Bitcoin.csv")
+Ethereum <- read.csv("/Users/carina/Desktop/data_2018-2022/Ethereum.csv")
+Dogecoin <- read.csv("/Users/carina/Desktop/data_2018-2022/Dogecoin.csv")
+ADA <- read.csv("/Users/carina/Desktop/data_2018-2022/ADA.csv")
+XRP <- read.csv("/Users/carina/Desktop/data_2018-2022/XRP.csv")
+```
+
+
+```{r}
+# Log return histograms
+log_return_Bitcoin <- with(Bitcoin, diff(log(Bitcoin$ClosingPrice)))
+hist(log_return_Bitcoin, main = "Histogram of log return of BTC")
+```
+
+```{r}
+# Log return histograms
+log_return_Ethereum <- with(Ethereum, diff(log(Ethereum$ClosingPrice)))
+hist(log_return_Ethereum, main = "Histogram of log return of ETH")
+```
+
+
+```{r}
+# Log return histograms
+log_return_Dogecoin <- with(Dogecoin, diff(log(Dogecoin$ClosingPrice)))
+hist(log_return_Dogecoin, main = "Histogram of log return of DOGE")
+```
+
+```{r}
+# Log return histograms
+log_return_ADA <- with(ADA, diff(log(ADA$ClosingPrice)))
+hist(log_return_ADA, main = "Histogram of log return of ADA")
+```
+
+```{r}
+# Log return histograms
+log_return_XRP <- with(XRP, diff(log(XRP$ClosingPrice)))
+hist(log_return_XRP, main = "Histogram of log return of XRP")
+```
+```{r}
+x_BNB <- log_return_BNB
+x_BTC <- log_return_Bitcoin
+x_ETH <- log_return_Ethereum
+x_DOGE <- log_return_Dogecoin
+x_ADA <- log_return_ADA
+x_XRP <- log_return_XRP
+
+nigFit(x_BNB, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"))
+
+nigFit(x_BTC, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"))
+
+nigFit(x_ETH, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"))
+
+nigFit(x_DOGE, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"))
+
+nigFit(x_ADA, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"))
+
+nigFit(x_XRP, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"))
+
+```
+
+```{r}
+qqnig(x_XRP, mu = 0.0009079, delta = 0.0297646, alpha = 8.6277493, beta = -0.1952691,
+      main = "Normal inverse Gaussian Q-Q Plot of XRP", xlab = "Theoretical Quantiles",
+      ylab = "Sample Quantiles",
+      plot.it = TRUE, line = TRUE)
+ppnig(x_XRP, mu = 0.0009079, delta = 0.0297646, alpha = 8.6277493, beta = -0.1952691,
+      main = "Normal inverse Gaussian P-P Plot of XRP",
+      xlab = "Uniform Quantiles",
+      ylab = "Probability-integral-transformed Data", plot.it = TRUE, line = TRUE)
+```
+
+```{r}
+# Criterion of Bitcoin
+x_BTC <- log_return_Bitcoin
+BTC_NIG <- nigFit(x_BTC, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"))
+
+# find the maximum parameter value and The value of the maximised log-likelihood
+print(BTC_NIG$param)
+print(BTC_NIG$maxLik)
+k <- 4
+n <- length(x_BTC)
+
+# AIC of Bitcoin with NIG distribution
+AIC_BTC_NIG <- 2*(k)-2*(BTC_NIG$maxLik)
+print(AIC_BTC_NIG)
+
+# BIC
+BIC_BTC_NIG <- k*log(n)-2*(BTC_NIG$maxLik)
+print(BIC_BTC_NIG)
+
+# CAIC
+CAIC_BTC_NIG <- -2*(BTC_NIG$maxLik)+k*(log(n)+1)
+print(CAIC_BTC_NIG)
+
+# AICc
+AICc_BTC_NIG <- AIC_BTC_NIG+2*k*(k+1)/(n-k-1)
+print(AICc_BTC_NIG)
+
+# HQC
+HQC_BTC_NIG <- -2*(BTC_NIG$maxLik)+2*k*log(log(n))
+print(HQC_BTC_NIG)
+```
+
+```{r}
+# Criterion of BNB
+x_BNB <- log_return_BNB
+BNB_NIG <- nigFit(x_BNB, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"))
+
+# find the maximum parameter value and The value of the maximised log-likelihood
+print(BNB_NIG$param)
+print(BNB_NIG$maxLik)
+k <- 4
+n <- length(x_BNB)
+
+# AIC of BNB with NIG distribution
+AIC_BNB_NIG <- 2*(k)-2*(BNB_NIG$maxLik)
+print(AIC_BNB_NIG)
+
+# BIC
+BIC_BNB_NIG <- k*log(n)-2*(BNB_NIG$maxLik)
+print(BIC_BNB_NIG)
+
+# CAIC
+CAIC_BNB_NIG <- -2*(BNB_NIG$maxLik)+k*(log(n)+1)
+print(CAIC_BNB_NIG)
+
+# AICc
+AICc_BNB_NIG <- AIC_BNB_NIG+2*k*(k+1)/(n-k-1)
+print(AICc_BNB_NIG)
+
+# HQC
+HQC_BNB_NIG <- -2*(BNB_NIG$maxLik)+2*k*log(log(n))
+print(HQC_BNB_NIG)
+```
+
+```{r}
+# Criterion of Ethereum
+x_ETH <- log_return_Ethereum
+ETH_NIG <- nigFit(x_ETH, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"))
+
+# find the maximum parameter value and The value of the maximised log-likelihood
+print(ETH_NIG$param)
+print(ETH_NIG$maxLik)
+k <- 4
+n <- length(x_ETH)
+
+# AIC of ETH with NIG distribution
+AIC_ETH_NIG <- 2*(k)-2*(ETH_NIG$maxLik)
+print(AIC_ETH_NIG)
+
+# BIC
+BIC_ETH_NIG <- k*log(n)-2*(ETH_NIG$maxLik)
+print(BIC_ETH_NIG)
+
+# CAIC
+CAIC_ETH_NIG <- -2*(ETH_NIG$maxLik)+k*(log(n)+1)
+print(CAIC_ETH_NIG)
+
+# AICc
+AICc_ETH_NIG <- AIC_ETH_NIG+2*k*(k+1)/(n-k-1)
+print(AICc_ETH_NIG)
+
+# HQC
+HQC_ETH_NIG <- -2*(ETH_NIG$maxLik)+2*k*log(log(n))
+print(HQC_ETH_NIG)
+```
+
+```{r}
+# Criterion of Dogecoin
+x_DOGE <- log_return_Dogecoin
+DOGE_NIG <- nigFit(x_DOGE, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"))
+
+# find the maximum parameter value and The value of the maximised log-likelihood
+print(DOGE_NIG$param)
+print(DOGE_NIG$maxLik)
+k <- 4
+n <- length(x_DOGE)
+
+# AIC of DOGE with NIG distribution
+AIC_DOGE_NIG <- 2*(k)-2*(DOGE_NIG$maxLik)
+print(AIC_DOGE_NIG)
+
+# BIC
+BIC_DOGE_NIG <- k*log(n)-2*(DOGE_NIG$maxLik)
+print(BIC_DOGE_NIG)
+
+# CAIC
+CAIC_DOGE_NIG <- -2*(DOGE_NIG$maxLik)+k*(log(n)+1)
+print(CAIC_DOGE_NIG)
+
+# AICc
+AICc_DOGE_NIG <- AIC_DOGE_NIG+2*k*(k+1)/(n-k-1)
+print(AICc_DOGE_NIG)
+
+# HQC
+HQC_DOGE_NIG <- -2*(DOGE_NIG$maxLik)+2*k*log(log(n))
+print(HQC_DOGE_NIG)
+```
+
+```{r}
+# Criterion of ADA
+x_ADA <- log_return_ADA
+ADA_NIG <- nigFit(x_ADA, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"))
+
+# find the maximum parameter value and The value of the maximised log-likelihood
+print(ADA_NIG$param)
+print(ADA_NIG$maxLik)
+k <- 4
+n <- length(x_ADA)
+
+# AIC of ADA with NIG distribution
+AIC_ADA_NIG <- 2*(k)-2*(ADA_NIG$maxLik)
+print(AIC_ADA_NIG)
+
+# BIC
+BIC_ADA_NIG <- k*log(n)-2*(ADA_NIG$maxLik)
+print(BIC_ADA_NIG)
+
+# CAIC
+CAIC_ADA_NIG <- -2*(ADA_NIG$maxLik)+k*(log(n)+1)
+print(CAIC_ADA_NIG)
+
+# AICc
+AICc_ADA_NIG <- AIC_ADA_NIG+2*k*(k+1)/(n-k-1)
+print(AICc_ADA_NIG)
+
+# HQC
+HQC_ADA_NIG <- -2*(ADA_NIG$maxLik)+2*k*log(log(n))
+print(HQC_ADA_NIG)
+```
+
+```{r}
+# Criterion of XRP
+x_XRP <- log_return_XRP
+XRP_NIG <- nigFit(x_XRP, freq = NULL, paramStart = NULL, startMethod = c("Nelder-Mead","BFGS"), startValues = c("FN","Cauchy","MoM","US"), criterion = "MLE",
+method = c("Nelder-Mead","BFGS","nlm", "L-BFGS-B","nlminb","constrOptim"))
+
+# find the maximum parameter value and The value of the maximised log-likelihood
+print(XRP_NIG$param)
+print(XRP_NIG$maxLik)
+k <- 4
+n <- length(x_XRP)
+
+# AIC of XRP with NIG distribution
+AIC_XRP_NIG <- 2*(k)-2*(XRP_NIG$maxLik)
+print(AIC_XRP_NIG)
+
+# BIC
+BIC_XRP_NIG <- k*log(n)-2*(XRP_NIG$maxLik)
+print(BIC_XRP_NIG)
+
+# CAIC
+CAIC_XRP_NIG <- -2*(XRP_NIG$maxLik)+k*(log(n)+1)
+print(CAIC_XRP_NIG)
+
+# AICc
+AICc_XRP_NIG <- AIC_XRP_NIG+2*k*(k+1)/(n-k-1)
+print(AICc_XRP_NIG)
+
+# HQC
+HQC_XRP_NIG <- -2*(XRP_NIG$maxLik)+2*k*log(log(n))
+print(HQC_XRP_NIG)
+```
+
+```{r}
+qqnig(x_XRP, mu = 0.001587825, delta = 0.048820775, alpha = 14.239600226, beta = -0.664616279,
+      main = "Normal inverse Gaussian Q-Q Plot of ADA", xlab = "Theoretical Quantiles",
+      ylab = "Sample Quantiles",
+      plot.it = TRUE, line = TRUE)
+ppnig(x_XRP, mu = 0.001587825, delta = 0.048820775, alpha = 14.239600226, beta = -0.664616279,
+      main = "Normal inverse Gaussian P-P Plot of ADA",
+      xlab = "Uniform Quantiles",
+      ylab = "Probability-integral-transformed Data", plot.it = TRUE, line = TRUE)
+```
+
+```{r}
+qqnig(x_XRP, mu = -0.003269152, delta = 0.039500783, alpha = 15.863889924, beta = 0.966199529,
+      main = "Normal inverse Gaussian Q-Q Plot of ETH", xlab = "Theoretical Quantiles",
+      ylab = "Sample Quantiles",
+      plot.it = TRUE, line = TRUE)
+ppnig(x_XRP, mu = -0.003269152, delta = 0.039500783, alpha = 15.863889924, beta = 0.966199529,
+      main = "Normal inverse Gaussian P-P Plot of ETH",
+      xlab = "Uniform Quantiles",
+      ylab = "Probability-integral-transformed Data", plot.it = TRUE, line = TRUE)
+```
+
+```{r}
+qqnig(x_BTC, mu = -0.001949804, delta = 0.024154043, alpha = 16.093168708, beta = 0.635813231,
+      main = "Normal inverse Gaussian Q-Q Plot of BTC", xlab = "Theoretical Quantiles",
+      ylab = "Sample Quantiles",
+      plot.it = TRUE, line = TRUE)
+ppnig(x_BTC, mu = -0.001949804, delta = 0.024154043, alpha = 16.093168708, beta = 0.635813231,
+      main = "Normal inverse Gaussian P-P Plot of BTC",
+      xlab = "Uniform Quantiles",
+      ylab = "Probability-integral-transformed Data", plot.it = TRUE, line = TRUE)
+```
+
+```{r}
+qqnig(x_BNB, mu = -0.003026, delta = 0.036161, alpha = 12.588596, beta = 0.284388,
+      main = "Normal inverse Gaussian Q-Q Plot of BNB", xlab = "Theoretical Quantiles",
+      ylab = "Sample Quantiles",
+      plot.it = TRUE, line = TRUE)
+ppnig(x_BNB, mu = -0.003026, delta = 0.036161, alpha = 12.588596, beta = 0.284388,
+      main = "Normal inverse Gaussian P-P Plot of BNB",
+      xlab = "Uniform Quantiles",
+      ylab = "Probability-integral-transformed Data", plot.it = TRUE, line = TRUE)
+```
+
+```{r}
+qqnig(x_DOGE, mu = 0.001424585, delta = 0.021887090, alpha =  2.114563174, beta = -0.348947245,
+      main = "Normal inverse Gaussian Q-Q Plot of DOGE", xlab = "Theoretical Quantiles",
+      ylab = "Sample Quantiles",
+      plot.it = TRUE, line = TRUE)
+ppnig(x_DOGE, mu = 0.001424585, delta = 0.021887090, alpha =  2.114563174, beta = -0.348947245,
+      main = "Normal inverse Gaussian P-P Plot of DOGE",
+      xlab = "Uniform Quantiles",
+      ylab = "Probability-integral-transformed Data", plot.it = TRUE, line = TRUE)
+```
+```{r}
+library(L1pack)
+log_return_Bitcoin <- with(Bitcoin, diff(log(Bitcoin$ClosingPrice)))
+qqplot(rlaplace(length(log_return_Bitcoin), location = -0.001, scale = 0.0258),log_return_Bitcoin, xlab = "Theoretical Quantiles \n param = (-0,001, 0.0258)", ylab = "Sample Quantiles", main = "Laplace Q-Q Plot of Bitcoin")
+abline(0, 1, col = 'black')
+Residuals <-rlaplace(length(log_return_Bitcoin), location = -0.001, scale = 0.0258)-log_return_Bitcoin
+standardizedResiduals <- Residuals/sd(Residuals)
+probDist <- pnorm(standardizedResiduals)
+plot(ppoints(length(standardizedResiduals)), sort(probDist),xlab = "Uniform Quantiles \n param = (-0,001, 0.0258)", ylab = "Probabilitu integral-transformed Data", main = "Laplace P-P Plot of Bitcoin")
+abline(0,1)
+```
