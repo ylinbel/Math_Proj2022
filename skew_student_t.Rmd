@@ -1,0 +1,110 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+BTC <- read.csv("path/to/Bitcoin_data.csv")
+#BTC = BTC[-1,]
+ETH <- read.csv("path/to/Ethereum_data.csv")
+#ETH = ETH[-1,]
+BNB <- read.csv("path/to/BNB.csv")
+#BNB = BNB[-1,]
+DOGE <- read.csv("path/to/Dogcoin.csv")
+#DOGE = DOGE[-1,]
+XRP <- read.csv("path/to/XRP.csv")
+#XRP = XRP[-1,]
+ADA <- read.csv("path/to/ADA.csv")
+#ADA = ADA[-1,]
+```
+
+```{r}
+#log_return_BTC <- with(BTC, diff(log(BTC$ClosingPrice)))
+#log_return_ETH <- with(ETH, diff(log(ETH$ClosingPrice)))
+log_return_BNB <- with(ADA, diff(log(ADA$ClosingPrice)))
+#log_return_DOGE <- with(DOGE, diff(log(DOGE$ClosingPrice)))
+#log_return_XRP <- with(XRP, diff(log(XRP$ClosingPrice)))
+#log_return_ADA <- with(ADA, diff(log(ADA$ClosingPrice)))
+
+```
+
+
+```{r}
+# Parameters of skewed Student's t distribution
+mu <- mean(log_return_BNB)
+# Not sure if the mean and sd are MLEs, but how could we include them in optim function properly if we want to get the MLEs of mu and sigma?
+
+x <- log_return_BNB
+
+# PDF of skewed Student's t distribution
+f_1 <- function(x, par){
+  
+  alpha <- par[1]
+  v1 <- par[2]
+  v2 <- v1
+  sigma <- par[3]
+  
+  kv <- gamma((v1+1)/2)/(sqrt(pi*v1)*gamma(v1/2))
+  # alphap <- alpha*kv1/(alpha*kv1+(1-alpha)*kv2)
+  
+  for (i in x){
+  
+  if (i <= mu) {
+    y=kv*((1+(((i-mu)/(2*sigma*alpha))**2)/v1)**(-(v1+1)/2))/sigma
+    return (y)
+               }
+  else {
+    y=kv*((1+(((i-mu)/(2*sigma*(1-alpha)))**2)/v2)**(-(v2+1)/2))/sigma
+    return(y)
+  }
+}
+}
+
+# Log likelihood function of skewed student's t distribution
+f_2 <- function(x, par){
+  -sum(log(f_1(x, par)))
+}
+
+f_3 <- function(x, par){
+  -LogLikATD(x, mu, )
+}
+
+optim(par=c(0.000001, 1, 0.000001), f_2, x=log_return_BNB)
+BNB_SST <- optim(par=c(0.000001, 1, 0.000001), f_2, x=log_return_BNB)
+```
+
+
+
+```{r}
+# Criterion of BTC
+k <- 4 #num of parametric
+n <- length(x)
+
+
+# AIC
+AIC_BNB_SST <- 2*k+2*(f_2(x, BNB_SST$par))
+AIC_BNB_SST
+
+# AICc
+AICc_BNB_SST <- AIC_BNB_SST+2*k*(k+1)/(n-k-1)
+AICc_BNB_SST
+
+# BIC
+BIC_BNB_SST <- k*log(n)+2*(f_2(x, BNB_SST$par))
+BIC_BNB_SST
+
+# HQC
+HQC_BNB_SST <- 2*(f_2(x, BNB_SST$par))+2*k*log(log(n))
+HQC_BNB_SST
+
+
+# CAIC
+CAIC_BNB_SST <- 2*(f_2(x, BNB_SST$par))+k*(log(n)+1)
+CAIC_BNB_SST
+
+```
+
+
+
+
