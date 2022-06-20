@@ -1,0 +1,48 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+BTC <- read.csv("D:/jmc2/MathProj/DataWIthLogReturn/Bitcoin.csv")
+#BTC = BTC[-1,]
+ETH <- read.csv("D:/jmc2/MathProj/DataWIthLogReturn/Ethereum.csv")
+#ETH = ETH[-1,]
+BNB <- read.csv("D:/jmc2/MathProj/DataWIthLogReturn/BNB.csv")
+#BNB = BNB[-1,]
+DOGE <- read.csv("D:/jmc2/MathProj/DataWIthLogReturn/Dogcoin.csv")
+#DOGE = DOGE[-1,]
+XRP <- read.csv("D:/jmc2/MathProj/DataWIthLogReturn/XRP.csv")
+#XRP = XRP[-1,]
+ADA <- read.csv("D:/jmc2/MathProj/DataWIthLogReturn/ADA.csv")
+#ADA = ADA[-1,]
+```
+
+```{r}
+# Log return histograms
+log_return_BTC <- with(BTC, diff(log(BTC$rank)))
+log_return_ETH <- with(ETH, diff(log(ETH$rank)))
+log_return_BNB <- with(BNB, diff(log(BNB$rank)))
+log_return_DOGE <- with(DOGE, diff(log(DOGE$rank)))
+log_return_XRP <- with(XRP, diff(log(XRP$rank)))
+log_return_ADA <- with(ADA, diff(log(ADA$rank)))
+```
+
+```{r}
+# Correlation test of BTC and BNB'
+library("ggpubr")
+cor.test(log_return_BTC, log_return_ADA, method = "kendall")
+```
+
+```{r}
+# Correlation test of BTC and BNB'
+# Plot
+plot(log_return_XRP, log_return_BTC, pch = 1, col='lightblue',  xlab = "ranks of XRP", ylab = "ranks of BTC")
+
+# Regression line
+abline(lm(log_return_BTC ~ log_return_BNB),col='blue', lwd = 3)
+```
